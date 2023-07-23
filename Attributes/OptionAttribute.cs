@@ -2,14 +2,12 @@
 
 public class OptionAttribute : Attribute, IArgAttribute
 {
-    private readonly string _name;
-
-    public OptionAttribute(string name, bool required = false)
+    public OptionAttribute(string name)
     {
-        _name = name;
-        Required = required;
+        Name = name;
     }
 
-    public bool Required { get; set; }
+    public string Name { get; set; }
     public string? GroupName { get; set; }
+    public string? HelpText { get; set; }
 }
