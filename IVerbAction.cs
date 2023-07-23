@@ -1,4 +1,6 @@
-﻿namespace ArgsParser;
+using ArgsParser.Attributes;
+
+namespace ArgsParser;
 
 public interface IVerbAction
 {
