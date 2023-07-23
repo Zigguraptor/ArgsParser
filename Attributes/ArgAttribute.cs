@@ -1,5 +1,6 @@
 ﻿namespace ArgsParser.Attributes;
 
-public interface IArgAttribute
+[AttributeUsage(AttributeTargets.Property)]
+public abstract class ArgAttribute : Attribute
 {
 }

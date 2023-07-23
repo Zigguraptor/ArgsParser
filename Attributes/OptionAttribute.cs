@@ -1,6 +1,6 @@
 ﻿namespace ArgsParser.Attributes;
 
-public class OptionAttribute : Attribute, IArgAttribute
+public class OptionAttribute : ArgAttribute
 {
     public OptionAttribute(string name)
     {
