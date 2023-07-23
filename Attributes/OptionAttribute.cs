@@ -14,5 +14,5 @@ public class OptionAttribute : ArgAttribute
 
     public char Alias { get; set; }
     public string Name { get; set; }
-    public string? HelpText { get; set; }
+    public string HelpText { get; set; } = string.Empty;
 }
