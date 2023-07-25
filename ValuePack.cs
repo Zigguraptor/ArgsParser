@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using ArgsParser.Attributes;
 
-namespace ArgsParser.newS;
+namespace ArgsParser;
 
 public class ValuePack
 {

@@ -1,17 +1,16 @@
 ﻿using ArgsParser.Attributes;
-using ArgsParser.newS;
 
 namespace ArgsParser;
 
 internal class VerbAction<T> : IVerbAction where T : new()
 {
     private readonly Action<T> _verbAction;
-    public NewSchema Schema { get; set; }
+    public Schema Schema { get; set; }
 
     public VerbAction(Action<T> verbAction)
     {
         _verbAction = verbAction;
-        Schema = new NewSchema(typeof(T));
+        Schema = new Schema(typeof(T));
     }
 
     public VerbAttribute Verb
