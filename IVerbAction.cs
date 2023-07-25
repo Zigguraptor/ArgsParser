@@ -1,9 +1,11 @@
 ﻿using ArgsParser.Attributes;
+using ArgsParser.newS;
 
 namespace ArgsParser;
 
-public interface IVerbAction
+internal interface IVerbAction
 {
     public VerbAttribute Verb { get; }
-    public void Invoke(string[] args);
+    public NewSchema Schema { get; set; }
+    public void Invoke(object options);
 }

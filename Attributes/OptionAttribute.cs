@@ -12,7 +12,9 @@ public class OptionAttribute : ArgAttribute
         Alias = alias;
     }
 
-    public char Alias { get; set; }
+    public char? Alias { get; set; }
     public string Name { get; set; }
+    public int? Min { get; set; }
+    public int? Max { get; set; }
     public string HelpText { get; set; } = string.Empty;
 }

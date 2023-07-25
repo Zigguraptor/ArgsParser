@@ -1,6 +1,6 @@
 ﻿namespace ArgsParser.Attributes;
 
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 public abstract class ArgAttribute : Attribute
 {
 }
