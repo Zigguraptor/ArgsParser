@@ -1,8 +1,8 @@
 namespace ArgsParser.Attributes;
 
-public class OptionGroupAttribute : ArgAttribute
+public class GroupAttribute : ArgAttribute
 {
-    public OptionGroupAttribute(string groupName, bool required = false)
+    public GroupAttribute(string groupName, bool required = false)
     {
         Required = required;
         GroupName = groupName;

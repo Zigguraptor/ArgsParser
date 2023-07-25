@@ -6,7 +6,7 @@ public class ArgsParser
     private readonly Dictionary<string, IVerbAction> _verbActionsByName;
     private readonly Action<string>? _error;
 
-    public ArgsParser(ArgsParserSettings argsParserSettings, List<IVerbAction> verbActions,
+    internal ArgsParser(ArgsParserSettings argsParserSettings, List<IVerbAction> verbActions,
         Action<string>? error = null)
     {
         _argsParserSettings = argsParserSettings;
@@ -28,6 +28,12 @@ public class ArgsParser
         }
 
         if (_verbActionsByName.TryGetValue(args[0], out var verbAction))
-            verbAction.Invoke(args);
+        {
+            verbAction.Invoke(verbAction.Schema.BuildParsedOptions(args));
+        }
+        else
+        {
+            _error?.Invoke("Unknown verb");
+        }
     }
 }
