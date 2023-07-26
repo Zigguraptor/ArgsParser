@@ -1,6 +1,8 @@
-﻿namespace ArgsParser;
+using ArgsParser.Attributes;
 
-public interface IVerbAction
+namespace ArgsParser;
+
+internal interface IVerbAction
 {
     public VerbAttribute Verb { get; }
     public void Invoke(string[] args);

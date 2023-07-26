@@ -1,4 +1,4 @@
-﻿namespace ArgsParser;
+﻿namespace ArgsParser.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 public class VerbAttribute : Attribute
