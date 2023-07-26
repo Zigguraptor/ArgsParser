@@ -4,7 +4,7 @@ namespace ArgsParser;
 
 internal class VerbAction<T> : IVerbAction where T : new()
 {
-    private readonly Action<T> _verbAction;
+    private readonly Action<T>? _verbAction;
     public Schema Schema { get; set; }
 
     public VerbAction(Action<T> verbAction)
@@ -16,6 +16,11 @@ internal class VerbAction<T> : IVerbAction where T : new()
     public VerbAction(Action<T> verbAction, bool noVerb)
     {
         _verbAction = verbAction;
+        Schema = new Schema(typeof(T), noVerb);
+    }
+
+    public VerbAction(bool noVerb = false)
+    {
         Schema = new Schema(typeof(T), noVerb);
     }
 
@@ -31,8 +36,11 @@ internal class VerbAction<T> : IVerbAction where T : new()
         }
     }
 
-    public void Invoke(string[] args)
+    public bool TryInvoke(string[] args, out object parsedOptions)
     {
-        _verbAction.Invoke((T)Schema.BuildParsedOptions(args));
+        parsedOptions = Schema.BuildParsedOptions(args);
+        if (_verbAction == null) return false;
+        _verbAction.Invoke((T)parsedOptions);
+        return true;
     }
 }

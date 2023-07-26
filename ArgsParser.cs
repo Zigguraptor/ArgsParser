@@ -1,6 +1,4 @@
-﻿using ArgsParser.Attributes;
-
-namespace ArgsParser;
+﻿namespace ArgsParser;
 
 public class ArgsParser
 {
@@ -29,29 +27,33 @@ public class ArgsParser
         }
     }
 
-    public void ParseArgs(string[] args)
+    public object ParseArgs(string[] args)
     {
         if (_noArgsAction == null && args.Length == 0)
         {
             ThrowException("No Args and \"NoArgsAction\" not defined.");
-            return;
+            return new object();
         }
 
         if (_verbActionsByName.TryGetValue(args[0], out var verbAction))
         {
-            verbAction.Invoke(args);
+            verbAction.TryInvoke(args, out var parsedOptions);
+            return parsedOptions;
         }
         else
         {
             if (_noVerbAction != null)
             {
-                _noVerbAction.Invoke(args);
+                _noVerbAction.TryInvoke(args, out var parsedOptions);
+                return parsedOptions;
             }
             else
             {
                 ThrowException($"Unknown verb: \"{args[0]}\"");
             }
         }
+
+        return new object();
     }
 
     private void ThrowException(string message)

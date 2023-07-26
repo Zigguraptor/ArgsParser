@@ -32,6 +32,15 @@ public class ArgsParserBuilder
         return this;
     }
 
+    public ArgsParserBuilder AddVerb<T>() where T : new()
+    {
+        if (typeof(T).GetCustomAttribute(typeof(VerbAttribute)) == null)
+            throw new ArgumentException($"Type {typeof(T)} no have VerbAttribute");
+
+        _verbActions.Add(new VerbAction<T>());
+        return this;
+    }
+
     public ArgsParserBuilder AddVerb<T>(Action<T> verbAction) where T : new()
     {
         if (typeof(T).GetCustomAttribute(typeof(VerbAttribute)) == null)

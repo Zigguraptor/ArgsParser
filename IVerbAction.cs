@@ -5,5 +5,5 @@ namespace ArgsParser;
 internal interface IVerbAction
 {
     public VerbAttribute Verb { get; }
-    public void Invoke(string[] args);
+    public bool TryInvoke(string[] args, out object parsedOptions);
 }
