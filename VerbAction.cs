@@ -13,6 +13,12 @@ internal class VerbAction<T> : IVerbAction where T : new()
         Schema = new Schema(typeof(T));
     }
 
+    public VerbAction(Action<T> verbAction, bool noVerb)
+    {
+        _verbAction = verbAction;
+        Schema = new Schema(typeof(T), noVerb);
+    }
+
     public VerbAttribute Verb
     {
         get
@@ -25,8 +31,8 @@ internal class VerbAction<T> : IVerbAction where T : new()
         }
     }
 
-    public void Invoke(object options)
+    public void Invoke(string[] args)
     {
-        _verbAction.Invoke((T)options); //TODO handle cast ex
+        _verbAction.Invoke((T)Schema.BuildParsedOptions(args));
     }
 }

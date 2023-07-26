@@ -2,8 +2,9 @@ using ArgsParser.Attributes;
 
 namespace ArgsParser;
 
-public interface IVerbAction
+internal interface IVerbAction
 {
     public VerbAttribute Verb { get; }
+    public Schema Schema { get; set; }
     public void Invoke(string[] args);
 }

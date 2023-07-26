@@ -7,6 +7,7 @@ public class Schema
 {
     public Type Type { get; }
 
+    private readonly int _startIndex = 1;
     private readonly SortedDictionary<string, OptionPack> _optionPacksByName = new();
     private readonly SortedDictionary<char, OptionPack> _optionPacksByAlias = new();
     private readonly List<ValuePack> _valuePacks = new();
@@ -38,6 +39,12 @@ public class Schema
             else if (valueAttribute != null)
                 _valuePacks.Add(new ValuePack(property, valueAttribute, groupAttribute));
         }
+    }
+
+    public Schema(Type type, bool noVerb) : this(type)
+    {
+        if (noVerb)
+            _startIndex = 0;
     }
 
     private object CreatePobj(List<(List<string>, OptionPack)> parsedOptions, List<string> parsedValues)
@@ -195,7 +202,7 @@ public class Schema
         int expectedValsMax = default;
         int expectedValsMin = default;
 
-        for (var index = 1; index < args.Length; index++)
+        for (var index = _startIndex; index < args.Length; index++)
         {
             var arg = args[index];
             if (expectedArgumet == ExpectedArgumet.Option)
