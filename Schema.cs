@@ -39,6 +39,8 @@ public class Schema
             else if (valueAttribute != null)
                 _valuePacks.Add(new ValuePack(property, valueAttribute, groupAttribute));
         }
+
+        _valuePacks.Sort((p1, p2) => p1.ValueAttribute.Index.CompareTo(p2.ValueAttribute.Index));
     }
 
     public Schema(Type type, bool noVerb) : this(type)
@@ -47,6 +49,7 @@ public class Schema
             _startIndex = 0;
     }
 
+    //TODO rename
     private object CreatePobj(List<(List<string>, OptionPack)> parsedOptions, List<string> parsedValues)
     {
         var obj = Activator.CreateInstance(Type);
@@ -63,26 +66,15 @@ public class Schema
 
             if (propType.IsGenericType)
             {
-                if (propType.IsGenericType &&
-                    (propType.GetGenericTypeDefinition() == typeof(IEnumerable<>) ||
-                     propType.GetInterfaces().Any(t =>
-                         t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))) &&
-                    propType.GenericTypeArguments.Length == 1)
+                if (TryCreateInstanceOfList(propType, out var genericParameterType, out var listInstance))
                 {
-                    var propGenericType = propType.GenericTypeArguments[0];
-                    var listPropT = typeof(List<>).MakeGenericType(propGenericType);
-                    //Ошибка? Ну я хз ¯\_(ツ)_/¯ это dynamic type
-                    dynamic listInstance = Activator.CreateInstance(listPropT) ?? //TODO
-                                           throw new InvalidOperationException(
-                                               $"Не удалось создать экземпляр типа {listPropT} for {parsedOption.Item2.PropertyInfo.Name} in {Type}");
-
-                    if (propGenericType == typeof(string))
+                    if (genericParameterType == typeof(string))
                     {
                         if (parsedOption.Item1.Count > 0)
                         {
                             foreach (var arg in parsedOption.Item1)
                             {
-                                listInstance.Add(arg);
+                                listInstance!.Add(arg);
                             }
                         }
                         else
@@ -90,7 +82,7 @@ public class Schema
                             while (parsedValues.Count > parsedValuesPointer)
                             {
                                 var arg = parsedValues[parsedValuesPointer++];
-                                listInstance.Add(arg);
+                                listInstance!.Add(arg);
                             }
                         }
                     }
@@ -103,14 +95,14 @@ public class Schema
                         {
                             //TODO
                             throw new Exception(
-                                $"Тип {propGenericType} in {propType} in {Type} не имеет метод Parse()");
+                                $"Тип {genericParameterType} in {propType} in {Type} не имеет метод Parse()");
                         }
 
                         if (parsedOption.Item1.Count > 0)
                         {
                             foreach (var arg in parsedOption.Item1)
                             {
-                                listInstance.Add(parsMethod.Invoke(null, new object[] { arg }));
+                                listInstance!.Add(parsMethod.Invoke(null, new object[] { arg }));
                             }
                         }
                         else
@@ -118,7 +110,7 @@ public class Schema
                             while (parsedValues.Count > parsedValuesPointer)
                             {
                                 var arg = parsedValues[parsedValuesPointer++];
-                                listInstance.Add(parsMethod.Invoke(null, new object[] { arg }));
+                                listInstance!.Add(parsMethod.Invoke(null, new object[] { arg }));
                             }
                         }
                     }
@@ -141,15 +133,13 @@ public class Schema
                 {
                     if (parsedOption.Item1.Count > 0)
                     {
-                        var arg = parsedOption.Item1[0];
-                        AddArgToObj(propType, parsedOption.Item2.PropertyInfo, arg);
+                        AddArgToObj(propType, parsedOption.Item2.PropertyInfo, parsedOption.Item1[0]);
                     }
                     else
                     {
                         if (parsedValues.Count > parsedValuesPointer)
                         {
-                            var arg = parsedValues[parsedValuesPointer++];
-                            AddArgToObj(propType, parsedOption.Item2.PropertyInfo, arg);
+                            AddArgToObj(propType, parsedOption.Item2.PropertyInfo, parsedValues[parsedValuesPointer++]);
                         }
                         else
                         {
@@ -159,6 +149,101 @@ public class Schema
                         }
                     }
                 }
+            }
+        }
+
+        foreach (var valuePack in _valuePacks)
+        {
+            if (parsedValues.Count > valuePack.ValueAttribute.Index + parsedValuesPointer)
+            {
+                var currentPointer = parsedValuesPointer;
+                var propertyType = valuePack.PropertyInfo.PropertyType;
+                if (TryCreateInstanceOfList(propertyType, out var genericParameterType, out var listInstance))
+                {
+                    if (valuePack.ValueAttribute.Min.HasValue)
+                    {
+                        if (parsedValues.Count >= currentPointer + valuePack.ValueAttribute.Min.Value)
+                        {
+                            if (valuePack.ValueAttribute.Max.HasValue)
+                            {
+                                var limit = valuePack.ValueAttribute.Max.Value + currentPointer;
+                                if (parsedValues.Count > limit)
+                                {
+                                    for (; currentPointer < limit; currentPointer++)
+                                    {
+                                        ParsAndAddToList(parsedValues[currentPointer], listInstance,
+                                            genericParameterType);
+                                    }
+                                }
+                                else
+                                {
+                                    for (; currentPointer < parsedValues.Count; currentPointer++)
+                                    {
+                                        ParsAndAddToList(parsedValues[currentPointer], listInstance,
+                                            genericParameterType);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (; currentPointer < parsedValues.Count; currentPointer++)
+                                {
+                                    ParsAndAddToList(parsedValues[currentPointer], listInstance, genericParameterType);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //TODO
+                            throw new Exception($"{valuePack.PropertyInfo.Name} Не хватает параметров");
+                        }
+                    }
+                    else
+                    {
+                        if (valuePack.ValueAttribute.Max.HasValue)
+                        {
+                            var limit = currentPointer + valuePack.ValueAttribute.Max.Value;
+                            if (parsedValues.Count > limit)
+                            {
+                                for (;
+                                     currentPointer < limit;
+                                     currentPointer++)
+                                {
+                                    ParsAndAddToList(parsedValues[currentPointer], listInstance,
+                                        genericParameterType);
+                                }
+                            }
+                            else
+                            {
+                                for (; currentPointer < parsedValues.Count; currentPointer++)
+                                {
+                                    ParsAndAddToList(parsedValues[currentPointer], listInstance,
+                                        genericParameterType);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for (; currentPointer < parsedValues.Count; currentPointer++)
+                            {
+                                ParsAndAddToList(parsedValues[currentPointer], listInstance,
+                                    genericParameterType);
+                            }
+                        }
+                    }
+
+                    //TODO Если остались не использованные значения, то прокинуть исключение или добавить ошибку.
+                    valuePack.PropertyInfo.SetValue(obj, listInstance);
+                }
+                else
+                {
+                    AddArgToObj(propertyType, valuePack.PropertyInfo, parsedValues[parsedValuesPointer++]);
+                }
+            }
+            else
+            {
+                //TODO
+                throw new Exception("Нехватает значений");
             }
         }
 
@@ -316,6 +401,58 @@ public class Schema
 
             if (optionPack.OptionAttribute.Max != null)
                 expectedValsMax = optionPack.OptionAttribute.Max.Value;
+        }
+    }
+
+    private bool TryCreateInstanceOfList(Type type, out Type? genericParameterType, out dynamic? listInstance)
+    {
+        if (!type.IsGenericType)
+        {
+            listInstance = null;
+            genericParameterType = null;
+            return false;
+        }
+
+        if (type.IsGenericType &&
+            (type.GetGenericTypeDefinition() == typeof(IEnumerable<>) ||
+             type.GetInterfaces().Any(t =>
+                 t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))) &&
+            type.GenericTypeArguments.Length == 1)
+        {
+            genericParameterType = type.GenericTypeArguments[0];
+            var listPropT = typeof(List<>).MakeGenericType(genericParameterType);
+            //Ошибка? Ну я хз ¯\_(ツ)_/¯ это dynamic type
+            listInstance = Activator.CreateInstance(listPropT) ?? //TODO
+                           throw new InvalidOperationException(
+                               $"Не удалось создать экземпляр типа {listPropT} in {Type}");
+            return true;
+        }
+
+        listInstance = null;
+        genericParameterType = null;
+        return false;
+    }
+
+    private void ParsAndAddToList(string arg, dynamic list, Type genericType)
+    {
+        if (genericType == typeof(string))
+        {
+            list.Add(arg);
+        }
+        else
+        {
+            var parsMethod = genericType
+                .GetMethod("Parse", BindingFlags.Public | BindingFlags.Static,
+                    new[] { typeof(string) });
+
+            if (parsMethod == null)
+            {
+                //TODO
+                throw new Exception(
+                    $"Тип {genericType} in {Type} не имеет метод Parse()");
+            }
+
+            list.Add(parsMethod.Invoke(null, new object[] { arg }));
         }
     }
 }
