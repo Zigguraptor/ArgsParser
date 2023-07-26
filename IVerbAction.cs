@@ -6,5 +6,5 @@ internal interface IVerbAction
 {
     public VerbAttribute Verb { get; }
     public Schema Schema { get; set; }
-    public void Invoke(object options);
+    public void Invoke(string[] args);
 }
