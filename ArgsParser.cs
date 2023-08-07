@@ -29,7 +29,7 @@ public class ArgsParser
 
     public object ParseArgs(string[] args)
     {
-        if (_noArgsAction == null && args.Length == 0)
+        if (!_argsParserSettings.AllowNoArguments || (_noArgsAction == null && args.Length == 0))
         {
             ThrowException("No Args and \"NoArgsAction\" not defined.");
             return new object();
@@ -40,19 +40,14 @@ public class ArgsParser
             verbAction.TryInvoke(args, out var parsedOptions);
             return parsedOptions;
         }
-        else
+
+        if (_noVerbAction != null)
         {
-            if (_noVerbAction != null)
-            {
-                _noVerbAction.TryInvoke(args, out var parsedOptions);
-                return parsedOptions;
-            }
-            else
-            {
-                ThrowException($"Unknown verb: \"{args[0]}\"");
-            }
+            _noVerbAction.TryInvoke(args, out var parsedOptions);
+            return parsedOptions;
         }
 
+        ThrowException($"Unknown verb: \"{args[0]}\"");
         return new object();
     }
 

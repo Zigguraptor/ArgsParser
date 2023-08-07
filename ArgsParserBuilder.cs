@@ -5,8 +5,8 @@ namespace ArgsParser;
 
 public class ArgsParserBuilder
 {
-    private readonly ArgsParserSettings _argsParserSettings;
     private readonly List<IVerbAction> _verbActions;
+    private ArgsParserSettings _argsParserSettings;
     private Action? _noArgsAction = null;
     private IVerbAction? _noVerbAction = null;
 
@@ -18,6 +18,12 @@ public class ArgsParserBuilder
     {
         _argsParserSettings = settings;
         _verbActions = new List<IVerbAction>();
+    }
+
+    public ArgsParserBuilder AllowNoArguments()
+    {
+        _argsParserSettings.AllowNoArguments = true;
+        return this;
     }
 
     public ArgsParserBuilder AddNoArgsAction(Action action)

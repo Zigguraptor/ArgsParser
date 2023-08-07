@@ -14,4 +14,5 @@ public struct ArgsParserSettings
 
     public int MaximumDisplayWidth = 80;
     public bool ThrowExceptions = true;
+    public bool AllowNoArguments = false;
 }
